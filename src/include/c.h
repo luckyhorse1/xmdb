@@ -63,4 +63,10 @@ typedef uint32 BlockNumber;
 
 #define CATALOG(name, oid, oidmacro) typedef struct CppConcat(FormData_, name)
 
+#define NAMEDATALEN 64
+typedef struct nameData
+{
+	char data[NAMEDATALEN];
+} NameData;
+
 #endif

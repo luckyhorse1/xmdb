@@ -2,26 +2,23 @@
 
 const char *data_path = "/home/xiaoma/code/data";
 
-void get_relation_path(char path[PATH_LEN])
+void get_relation_path(char path[PATH_LEN], Oid relNode)
 {
     Oid dbNode = 1;
-    Oid relNode = 16384;
     sprintf(path, "%s/base/%u/%u", data_path, dbNode, relNode);
 }
 
-int mdcreate()
+void mdcreate(const char *path)
 {
-    char path[PATH_LEN];
-    get_relation_path(path);
     int fd = open(path, O_RDWR | O_CREAT | O_EXCL, (S_IRUSR | S_IWUSR));
+    close(fd);
     printf("mdcreate fd %d\n", fd);
-    return fd;
 }
 
-int relation_open()
+int relation_open(Oid relNode)
 {
     char path[PATH_LEN];
-    get_relation_path(path);
+    get_relation_path(path, relNode);
     int fd = open(path, O_RDWR);
     return fd;
 }

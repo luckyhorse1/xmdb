@@ -2,7 +2,7 @@
 #define HTUP_H
 
 #include "c.h"
-#include "access/tupdesc.h"
+#include "catalog/pg_attribute.h"
 
 /*
  * information stored in t_infomask:
@@ -55,7 +55,18 @@ typedef HeapTupleData *HeapTuple;
 
 #define HEAPTUPLESIZE MAXALIGN(sizeof(HeapTupleData))
 
-extern HeapTuple heap_form_tuple();
+typedef struct TupleDescData
+{
+    int natts; /* number of attributes in the tuple */
+    FormData_pg_attribute attrs[FLEXIBLE_ARRAY_MEMBER];
+} TupleDescData;
+
+typedef struct TupleDescData *TupleDesc;
+
+/* Accessor for the i'th attribute of tupdesc. */
+#define TupleDescAttr(tupdesc, i) (&(tupdesc)->attrs[(i)])
+
+extern HeapTuple heap_form_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull);
 extern void get_tuple();
 
 #endif /* HTUP_H */

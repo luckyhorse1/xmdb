@@ -4,7 +4,8 @@ project(xmdb)
 
 include_directories(src/include)
 
+aux_source_directory(src BASE)
 aux_source_directory(src/access ACCESS)
 aux_source_directory(src/storage STORAGE)
 
-add_executable(xmdb main.cpp ${ACCESS} ${STORAGE})
+add_executable(xmdb main.cpp ${BASE} ${ACCESS} ${STORAGE})

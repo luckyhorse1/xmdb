@@ -1,9 +1,9 @@
 #include "access/htup.h"
 #include "storage/bufpage.h"
 
-void get_tuple()
+void get_tuple(Oid relNode)
 {
-    int fd = relation_open();
+    int fd = relation_open(relNode);
     PageHeader phdr = (PageHeader)malloc(BLCKSZ);
 
     memset(phdr, 0, BLCKSZ);
@@ -25,9 +25,11 @@ void get_tuple()
     free(phdr);
 }
 
-static void construct_test_data(TupleDesc &tupleDesc, Datum *values)
+static void construct_test_data(TupleDesc &tupleDesc, Datum *&values, bool *&isnull)
 {
     tupleDesc = (TupleDesc)malloc(sizeof(TupleDescData) + 4 * sizeof(FormData_pg_attribute));
+    values = (Datum *)malloc(4 * sizeof(Datum));
+    isnull = (bool *)malloc(4 * sizeof(bool));
     tupleDesc->natts = 4;
 
     tupleDesc->attrs[0].attalign = 'c';
@@ -42,13 +44,18 @@ static void construct_test_data(TupleDesc &tupleDesc, Datum *values)
     tupleDesc->attrs[3].attalign = 'c';
     tupleDesc->attrs[3].attlen = -1;
 
-    const char *name = (char *)malloc(64);
+    const char *name = (char *)malloc(NAMEDATALEN);
     name = "xiaoma";
     values[0] = (Datum)name;
     values[1] = (Datum)malloc(sizeof(uint16));
     values[1] = 27;
     values[2] = (Datum)malloc(sizeof(uint8));
     values[2] = '1';
+
+    isnull[0] = true;
+    isnull[1] = true;
+    isnull[2] = true;
+    isnull[3] = false;
 }
 
 static Size heap_compute_data_size(TupleDesc tupleDesc, Datum *values, bool *isnull)
@@ -147,20 +154,14 @@ static void heap_fill_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull, ch
     assert((data - start) == data_size);
 }
 
-HeapTuple heap_form_tuple()
+HeapTuple heap_form_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull)
 {
     HeapTuple tuple;
     HeapTupleHeader td;
-    TupleDesc tupleDesc;
     Size len, data_len;
     int hoff;
     bool hasnull = false;
-
-    // construct data for attibute(name age sex addr)
-    int numberOfAttributes = 4;
-    bool isnull[4] = {false, false, false, true};
-    Datum *values = (Datum *)malloc(4 * sizeof(Datum));
-    construct_test_data(tupleDesc, values);
+    int numberOfAttributes = tupleDesc->natts;
 
     for (int i = 0; i < numberOfAttributes; i++)
     {
@@ -189,6 +190,9 @@ HeapTuple heap_form_tuple()
 
     heap_fill_tuple(tupleDesc, values, isnull, (char *)td + hoff, data_len,
                     &td->t_infomask, (hasnull ? td->t_bits : NULL));
-    printf("form tuple %s\n", (char *)td + hoff);
+
+    // test first value
+    // char *data = (char *)td + hoff;
+    // printf("oid: %u\n", *(Oid*)(data));
     return tuple;
 }
