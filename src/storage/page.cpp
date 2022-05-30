@@ -29,7 +29,7 @@ void page_add_item(Oid relNode, char *item, Size size)
     read(fd, phdr, BLCKSZ);
     close(fd);
 
-    offsetNumber = /*PageGetMaxOffsetNumber(phdr)*/ +1;
+    offsetNumber = PageGetMaxOffsetNumber(phdr) + 1;
     lower = phdr->pd_lower + sizeof(ItemIdData);
     alignedSize = MAXALIGN(size);
     upper = (int)phdr->pd_upper - (int)alignedSize;

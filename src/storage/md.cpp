@@ -12,7 +12,6 @@ void mdcreate(const char *path)
 {
     int fd = open(path, O_RDWR | O_CREAT | O_EXCL, (S_IRUSR | S_IWUSR));
     close(fd);
-    printf("mdcreate fd %d\n", fd);
 }
 
 int relation_open(Oid relNode)

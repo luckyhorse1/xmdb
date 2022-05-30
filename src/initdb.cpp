@@ -5,13 +5,14 @@
 #include "access/htup.h"
 
 void init_pg_class();
-void construct_pg_class_init_data(TupleDesc &tupleDesc, Datum *&values, bool *&isnull);
-void get_pg_class_tuple();
+void pg_class_add_item(Oid oid, const char* relname);
+void construct_relinfo(TupleDesc &tupleDesc, Datum *&values, bool *&isnull, Oid oid, const char *name);
+void get_pg_class_tuple(int num);
 
 void initdb()
 {
     init_pg_class();
-    get_pg_class_tuple();
+    get_pg_class_tuple(1);
 }
 
 void init_pg_class()
@@ -21,10 +22,15 @@ void init_pg_class()
     mdcreate(path);
     page_init(RelationRelationId, 0);
 
+    pg_class_add_item(RelationRelationId, "pg_class");
+}
+
+void pg_class_add_item(Oid oid, const char* relname)
+{
     TupleDesc tupleDesc;
     Datum *values;
     bool *isnull;
-    construct_pg_class_init_data(tupleDesc, values, isnull);
+    construct_relinfo(tupleDesc, values, isnull, oid, relname);
     HeapTuple tuple = heap_form_tuple(tupleDesc, values, isnull);
     page_add_item(RelationRelationId, (char *)(tuple->t_data), tuple->t_len);
 
@@ -33,7 +39,7 @@ void init_pg_class()
     free(isnull);
 }
 
-void construct_pg_class_init_data(TupleDesc &tupleDesc, Datum *&values, bool *&isnull)
+void construct_relinfo(TupleDesc &tupleDesc, Datum *&values, bool *&isnull, Oid oid, const char *name)
 {
     tupleDesc = (TupleDesc)malloc(sizeof(TupleDescData) + 4 * sizeof(FormData_pg_attribute));
     values = (Datum *)malloc(4 * sizeof(Datum));
@@ -52,17 +58,9 @@ void construct_pg_class_init_data(TupleDesc &tupleDesc, Datum *&values, bool *&i
     tupleDesc->attrs[3].attalign = 'i';
     tupleDesc->attrs[3].attlen = sizeof(int32);
 
-    values[0] = (Datum)malloc(sizeof(Oid));
-    values[0] = RelationRelationId;
-
-    const char *relname = (char *)malloc(NAMEDATALEN);
-    relname = "pg_class";
-    values[1] = (Datum)relname;
-
-    values[2] = (Datum)malloc(sizeof(Oid));
-    values[2] = RelationRelationId;
-
-    values[3] = (Datum)malloc(sizeof(int32));
+    values[0] = oid;
+    values[1] = (Datum)name;
+    values[2] = oid;
     values[3] = 1;
 
     isnull[0] = false;
@@ -71,7 +69,7 @@ void construct_pg_class_init_data(TupleDesc &tupleDesc, Datum *&values, bool *&i
     isnull[3] = false;
 }
 
-void get_pg_class_tuple()
+void get_pg_class_tuple(int num)
 {
     int offset = 0;
     int fd = relation_open(RelationRelationId);
@@ -82,7 +80,7 @@ void get_pg_class_tuple()
 
     printf("lower: %d upper: %d\n", phdr->pd_lower, phdr->pd_upper);
 
-    ItemId itemId = PageGetItemId(phdr, 1);
+    ItemId itemId = PageGetItemId(phdr, num);
     HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + itemId->lp_off);
 
     // first value no need to align because hoff has been max aligned. see heap_form_tuple
