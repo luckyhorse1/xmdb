@@ -53,6 +53,8 @@ typedef char *Pointer;
 #define PointerGetDatum(X) ((Datum)(X))
 
 typedef uint32 Oid;
+#define InvalidOid		((Oid) 0)
+
 typedef uint32 TransactionId;
 typedef uint32 CommandId;
 typedef uintptr_t Datum;

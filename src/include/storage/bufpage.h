@@ -46,6 +46,7 @@ typedef PageHeaderData *PageHeader;
 		(itemId)->lp_len = (len))
 
 extern void page_init(Oid relNode, BlockNumber page);
+extern PageHeader page_read(Oid relNode, BlockNumber page);
 extern void page_add_item(Oid relNode, char *item, Size size);
 
 #endif

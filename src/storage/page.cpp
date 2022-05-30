@@ -13,6 +13,17 @@ void page_init(Oid relNode, BlockNumber page)
     free(header);
 }
 
+PageHeader page_read(Oid relNode, BlockNumber page)
+{
+    int fd = relation_open(relNode);
+    PageHeader phdr = (PageHeader)malloc(BLCKSZ);
+    memset(phdr, 0, BLCKSZ);
+    lseek(fd, page * BLCKSZ, SEEK_SET);
+    read(fd, phdr, BLCKSZ);
+    close(fd);
+    return phdr;
+}
+
 void page_add_item(Oid relNode, char *item, Size size)
 {
     PageHeader phdr;
