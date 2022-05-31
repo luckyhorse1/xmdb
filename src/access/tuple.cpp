@@ -1,5 +1,6 @@
-#include "access/htup.h"
-#include "storage/bufpage.h"
+#include "access/tuple.h"
+#include "access/pg_attr.h"
+#include "storage/page.h"
 
 void get_tuple(Oid relNode)
 {
@@ -197,4 +198,44 @@ HeapTuple heap_form_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull)
     // char *data = (char *)td + hoff;
     // printf("oid: %u\n", *(Oid*)(data));
     return tuple;
+}
+
+static inline void print_val_by_type(Type type, char *start)
+{
+    switch (type)
+    {
+    case CHAR:
+        printf("%c, ", *start);
+        break;
+    case SHORT:
+        printf("%d, ", *(int16 *)start);
+        break;
+    case INT:
+        printf("%d, ", *(int32 *)start);
+        break;
+    case LONG:
+        printf("%ld, ", *(int64 *)start);
+        break;
+    case STRING:
+        printf("%s, ", start);
+    default:
+        break;
+    }
+}
+
+void print_tup(HeapTupleHeader tuple, TupleDesc tupleDesc)
+{
+    int offset = 0;
+    char *start = (char *)tuple + tuple->t_hoff;
+
+    for (int i = 0; i < tupleDesc->natts; i++)
+    {
+        FormData_pg_attribute *attr = &tupleDesc->attrs[i];
+        offset = att_align_nominal(offset, attr->attalign);
+        Type type = get_type_by_attr(attr);
+        printf("%s: ", attr->attname.data);
+        print_val_by_type(type, start + offset);
+        offset += (type == STRING ? (strlen(start + offset) + 1) : attr->attlen);
+    }
+    printf("\n");
 }

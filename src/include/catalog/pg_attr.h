@@ -56,5 +56,4 @@ typedef FormData_pg_attribute *Form_pg_attribute;
 			break;                                                            \
 		}                                                                     \
 	} while (0)
-
 #endif

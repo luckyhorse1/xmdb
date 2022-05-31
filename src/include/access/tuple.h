@@ -2,7 +2,7 @@
 #define HTUP_H
 
 #include "c.h"
-#include "catalog/pg_attribute.h"
+#include "catalog/pg_attr.h"
 
 /*
  * information stored in t_infomask:
@@ -68,5 +68,6 @@ typedef struct TupleDescData *TupleDesc;
 
 extern HeapTuple heap_form_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull);
 extern void get_tuple();
+extern void print_tup(HeapTupleHeader tuple, TupleDesc tupleDesc);
 
 #endif /* HTUP_H */

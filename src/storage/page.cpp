@@ -1,4 +1,4 @@
-#include "storage/bufpage.h"
+#include "storage/page.h"
 
 void page_init(Oid relNode, BlockNumber page)
 {
@@ -24,7 +24,7 @@ PageHeader page_read(Oid relNode, BlockNumber page)
     return phdr;
 }
 
-void page_add_item(Oid relNode, char *item, Size size)
+int page_add_item(Oid relNode, char *item, Size size)
 {
     PageHeader phdr;
     Size alignedSize;
@@ -55,4 +55,6 @@ void page_add_item(Oid relNode, char *item, Size size)
     fd = relation_open(relNode);
     write(fd, phdr, BLCKSZ);
     close(fd);
+
+    return offsetNumber;
 }

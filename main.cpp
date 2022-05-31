@@ -1,6 +1,4 @@
-#include "storage/bufpage.h"
-#include "access/htup.h"
-#include "access/initdb.h"
+#include "initdb.h"
 #include "access/table.h"
 
 int main()
