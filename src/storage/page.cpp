@@ -1,4 +1,5 @@
 #include "storage/page.h"
+#include "access/pg_class.h"
 
 void page_init(Oid relNode, BlockNumber page)
 {
@@ -24,7 +25,7 @@ PageHeader page_read(Oid relNode, BlockNumber page)
     return phdr;
 }
 
-int page_add_item(Oid relNode, char *item, Size size)
+int page_add_item(Oid reloid, char *item, Size size)
 {
     PageHeader phdr;
     Size alignedSize;
@@ -33,10 +34,21 @@ int page_add_item(Oid relNode, char *item, Size size)
     int upper;
     ItemId itemId;
     int fd;
+    int npage;
+
+    if (reloid == RelationRelationId)
+    {
+        npage = 1;
+    }
+    else
+    {
+        npage = get_page_num(reloid);
+    }
 
     phdr = (PageHeader)malloc(BLCKSZ);
     memset(phdr, 0, BLCKSZ);
-    fd = relation_open(relNode);
+    fd = relation_open(reloid);
+    lseek(fd, (npage - 1) * BLCKSZ, SEEK_SET);
     read(fd, phdr, BLCKSZ);
     close(fd);
 
@@ -45,6 +57,12 @@ int page_add_item(Oid relNode, char *item, Size size)
     alignedSize = MAXALIGN(size);
     upper = (int)phdr->pd_upper - (int)alignedSize;
 
+    if (lower > upper)
+    {
+        page_advance(reloid);
+        return page_add_item(reloid, item, size);
+    }
+
     itemId = PageGetItemId(phdr, offsetNumber);
     ItemIdSetNormal(itemId, upper, size);
 
@@ -52,9 +70,17 @@ int page_add_item(Oid relNode, char *item, Size size)
     phdr->pd_lower = (LocationIndex)lower;
     phdr->pd_upper = (LocationIndex)upper;
 
-    fd = relation_open(relNode);
+    fd = relation_open(reloid);
+    lseek(fd, (npage - 1) * BLCKSZ, SEEK_SET);
     write(fd, phdr, BLCKSZ);
     close(fd);
 
     return offsetNumber;
+}
+
+void page_advance(Oid reloid)
+{
+    int npage = get_page_num(reloid);
+    page_init(reloid, npage);
+    pgclass_update_page(reloid, npage + 1);
 }

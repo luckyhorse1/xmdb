@@ -1,8 +1,9 @@
 #include "c.h"
 #include "storage/relation.h"
+#include "storage/page.h"
 #include "access/tuple.h"
 #include "access/pg_attr.h"
-#include "storage/page.h"
+#include "access/pg_class.h"
 #include "catalog/pg_class.h"
 
 void create_table(Oid oid, const char *relname, char (*attnames)[NAMEDATALEN], Type *types, int nattr)
@@ -10,6 +11,7 @@ void create_table(Oid oid, const char *relname, char (*attnames)[NAMEDATALEN], T
     relation_create(oid);
 
     int offsetnum = pgclass_page_add_item(oid, relname, nattr);
+    printf("init table %s. ", relname);
     print_pgclass_tuple(offsetnum);
 
     for (int i = 0; i < nattr; i++)
@@ -29,7 +31,7 @@ void table_insert(const char *relname, const char *name, int16 age, char sex, ui
     for (int i = 0; i < num; i++)
     {
         HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[i].lp_off);
-        if (nattr = get_nattr_by_reloid(tuple, reloid))
+        if (nattr = get_classinfo_by_reloid(tuple, reloid, CLASS_ATTR))
         {
             break;
         }
@@ -89,7 +91,7 @@ void table_scan(const char *relname)
     for (int i = 0; i < num; i++)
     {
         HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[i].lp_off);
-        if (nattr = get_nattr_by_reloid(tuple, reloid))
+        if (nattr = get_classinfo_by_reloid(tuple, reloid, CLASS_ATTR))
         {
             break;
         }
@@ -125,12 +127,17 @@ void table_scan(const char *relname)
     free(phdr);
 
     // print
-    phdr = page_read(reloid, 0);
-    num = PageGetMaxOffsetNumber(phdr);
-    for (int i = 0; i < num; i++)
+    int npages = get_page_num(reloid);
+    for (int i = 0; i < npages; i++)
     {
-        HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[i].lp_off);
-        print_tup(tuple, tupleDesc);
+        phdr = page_read(reloid, i);
+        num = PageGetMaxOffsetNumber(phdr);
+        for (int j = 0; j < num; j++)
+        {
+            HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[j].lp_off);
+            printf("page %d tuple %d. ", i, j);
+            print_tup(tuple, tupleDesc);
+        }
     }
     free(phdr);
 

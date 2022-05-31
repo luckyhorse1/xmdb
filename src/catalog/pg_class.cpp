@@ -17,6 +17,7 @@ void init_pg_class()
 {
     relation_create(RelationRelationId);
     int offsetnum = pgclass_page_add_item(RelationRelationId, "pg_class", 5);
+    printf("init table pg_class. ");
     print_pgclass_tuple(offsetnum);
 }
 
@@ -126,20 +127,82 @@ Oid get_oid_by_relname(const char *relname)
     return ret;
 }
 
-int get_nattr_by_reloid(HeapTupleHeader tuple, Oid reloid)
+Datum get_classinfo_by_reloid(HeapTupleHeader tuple, Oid reloid, CLASS_KIND kind)
 {
     int offset = 0;
     char *start = (char *)tuple + tuple->t_hoff;
     if (*(Oid *)start != reloid)
     {
-        return 0;
+        return (Datum)NULL;
     }
     offset += 4;
     offset += strlen(start + offset) + 1;
     offset = att_align_nominal(offset, 'i');
     offset += 4;
     offset = att_align_nominal(offset, 'i');
+    if (kind == CLASS_PAGE)
+    {
+        return *(int32 *)(start + offset);
+    }
     offset += 4;
     offset = att_align_nominal(offset, 's');
     return *(int16 *)(start + offset);
+}
+
+int get_page_num(Oid reloid)
+{
+    PageHeader phdr = page_read(RelationRelationId, 0);
+    int num = PageGetMaxOffsetNumber(phdr);
+    int npage = 0;
+    for (int i = 0; i < num; i++)
+    {
+        HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[i].lp_off);
+        if (npage = get_classinfo_by_reloid(tuple, reloid, CLASS_PAGE))
+        {
+            break;
+        }
+    }
+    free(phdr);
+    return npage;
+}
+
+bool update_classinfo_by_reloid(HeapTupleHeader tuple, Oid reloid, CLASS_KIND kind, Datum val)
+{
+    int offset = 0;
+    char *start = (char *)tuple + tuple->t_hoff;
+    if (*(Oid *)start != reloid)
+    {
+        return false;
+    }
+    offset += 4;
+    offset += strlen(start + offset) + 1;
+    offset = att_align_nominal(offset, 'i');
+    offset += 4;
+    offset = att_align_nominal(offset, 'i');
+    if (kind == CLASS_PAGE)
+    {
+        *(int32 *)(start + offset) = (int32)val;
+    }
+    offset += 4;
+    offset = att_align_nominal(offset, 's');
+    return true;
+}
+
+void pgclass_update_page(Oid reloid, int new_npage)
+{
+    PageHeader phdr = page_read(RelationRelationId, 0);
+    int num = PageGetMaxOffsetNumber(phdr);
+    for (int i = 0; i < num; i++)
+    {
+        HeapTupleHeader tuple = (HeapTupleHeader)((char *)phdr + phdr->pd_linp[i].lp_off);
+        if (update_classinfo_by_reloid(tuple, reloid, CLASS_PAGE, new_npage))
+        {
+            int fd = relation_open(RelationRelationId);
+            write(fd, phdr, BLCKSZ);
+            close(fd);
+            break;
+        }
+    }
+
+    free(phdr);
 }

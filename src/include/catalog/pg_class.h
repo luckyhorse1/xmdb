@@ -16,10 +16,12 @@ CATALOG(pg_class, 1259, RelationRelationId)
 }
 FormData_pg_class;
 
-extern void init_pg_class();
-extern int pgclass_page_add_item(Oid oid, const char *relname, int nattr);
-extern void print_pgclass_tuple(int offsetnum);
-extern Oid get_oid_by_relname(const char *relname);
-extern int get_nattr_by_reloid(HeapTupleHeader tuple, Oid reloid);
-
+typedef enum CLASS_KIND
+{
+    CLASS_OID,
+    CLASS_NAME,
+    CLASS_NODE,
+    CLASS_PAGE,
+    CLASS_ATTR
+} CLASS_KIND;
 #endif

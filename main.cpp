@@ -9,7 +9,7 @@ int main()
     Type types[4] = {STRING, SHORT, CHAR, INT};
     create_table(16384, "person", attnames, types, 4);
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 200; i++)
     {
         table_insert("person", "xiaoma", 27, 'm', 20000);
     }
