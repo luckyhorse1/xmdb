@@ -1,5 +1,5 @@
 #include "c.h"
-#include "storage/md.h"
+#include "storage/relation.h"
 #include "access/tuple.h"
 #include "access/pg_attr.h"
 #include "storage/page.h"
@@ -7,10 +7,7 @@
 
 void create_table(Oid oid, const char *relname, char (*attnames)[NAMEDATALEN], Type *types, int nattr)
 {
-    char path[PATH_LEN];
-    get_relation_path(path, oid);
-    mdcreate(path);
-    page_init(oid, 0);
+    relation_create(oid);
 
     int offsetnum = pgclass_page_add_item(oid, relname, nattr);
     print_pgclass_tuple(offsetnum);

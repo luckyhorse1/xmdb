@@ -1,4 +1,4 @@
-#include "storage/md.h"
+#include "storage/relation.h"
 #include "storage/page.h"
 #include "catalog/pg_attr.h"
 #include "access/tuple.h"
@@ -9,10 +9,7 @@ void construct_pgattr_tuple(TupleDesc &tupleDesc, Datum *&values, Oid oid, const
 
 void init_pg_attribute()
 {
-    char path[PATH_LEN];
-    get_relation_path(path, AttributeRelationId);
-    mdcreate(path);
-    page_init(AttributeRelationId, 0);
+    relation_create(AttributeRelationId);
 }
 
 void pgattr_page_add_item(Oid oid, const char *attname, Type type, int attrnum)

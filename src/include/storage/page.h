@@ -2,7 +2,7 @@
 #define BUFPAGE_H
 
 #include "c.h"
-#include "storage/md.h"
+#include "storage/relation.h"
 
 #define BLCKSZ 8196
 typedef uint16 LocationIndex;

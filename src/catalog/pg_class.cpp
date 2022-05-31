@@ -1,4 +1,4 @@
-#include "storage/md.h"
+#include "storage/relation.h"
 #include "storage/page.h"
 #include "catalog/pg_class.h"
 #include "access/tuple.h"
@@ -15,11 +15,7 @@ void print_pgclass_tuple(int offsetnum);
  */
 void init_pg_class()
 {
-    char path[PATH_LEN];
-    get_relation_path(path, RelationRelationId);
-    mdcreate(path);
-    page_init(RelationRelationId, 0);
-
+    relation_create(RelationRelationId);
     int offsetnum = pgclass_page_add_item(RelationRelationId, "pg_class", 5);
     print_pgclass_tuple(offsetnum);
 }
