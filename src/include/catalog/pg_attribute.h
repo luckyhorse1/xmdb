@@ -7,6 +7,9 @@
 
 CATALOG(pg_attribute, 1249, AttributeRelationId)
 {
+	Oid attrelid;
+	NameData attname;
+	int16 attnum;
 	/*
 	 * 'c' = CHAR alignment, ie no alignment needed.
 	 * 's' = SHORT alignment (2 bytes on most machines).
@@ -14,7 +17,6 @@ CATALOG(pg_attribute, 1249, AttributeRelationId)
 	 * 'd' = DOUBLE alignment (8 bytes on many machines, but by no means all).
 	 */
 	char attalign;
-
 	int16 attlen;
 }
 FormData_pg_attribute;
@@ -32,27 +34,27 @@ typedef FormData_pg_attribute *Form_pg_attribute;
 					   : (                              \
 							 (cur_offset) + (strlen((char *)(attptr)) + 1)))
 
-#define store_att_byval(T, newdatum, attlen)                                \
-	do                                                                      \
-	{                                                                       \
-		switch (attlen)                                                     \
-		{                                                                   \
-		case sizeof(char):                                                  \
-			*(char *)(T) = DatumGetChar(newdatum);                          \
-			break;                                                          \
-		case sizeof(int16):                                                 \
-			*(int16 *)(T) = DatumGetInt16(newdatum);                        \
-			break;                                                          \
-		case sizeof(int32):                                                 \
-			*(int32 *)(T) = DatumGetInt32(newdatum);                        \
-			break;                                                          \
-		case sizeof(Datum):                                                 \
-			*(Datum *)(T) = (newdatum);                                     \
-			break;                                                          \
-		default:                                                            \
-			fprintf(stderr, "unsupported byval length: %d", (int)(attlen)); \
-			break;                                                          \
-		}                                                                   \
+#define store_att_byval(T, newdatum, attlen)                                  \
+	do                                                                        \
+	{                                                                         \
+		switch (attlen)                                                       \
+		{                                                                     \
+		case sizeof(char):                                                    \
+			*(char *)(T) = DatumGetChar(newdatum);                            \
+			break;                                                            \
+		case sizeof(int16):                                                   \
+			*(int16 *)(T) = DatumGetInt16(newdatum);                          \
+			break;                                                            \
+		case sizeof(int32):                                                   \
+			*(int32 *)(T) = DatumGetInt32(newdatum);                          \
+			break;                                                            \
+		case sizeof(Datum):                                                   \
+			*(Datum *)(T) = (newdatum);                                       \
+			break;                                                            \
+		default:                                                              \
+			fprintf(stderr, "unsupported byval length: %d\n", (int)(attlen)); \
+			break;                                                            \
+		}                                                                     \
 	} while (0)
 
 #endif

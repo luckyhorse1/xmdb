@@ -66,7 +66,7 @@ static Size heap_compute_data_size(TupleDesc tupleDesc, Datum *values, bool *isn
     {
         Datum val;
         Form_pg_attribute atti;
-        if (isnull[i])
+        if (isnull && isnull[i])
             continue;
         val = values[i];
         atti = TupleDescAttr(tupleDesc, i);
@@ -141,14 +141,13 @@ static void heap_fill_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull, ch
     for (int i = 0; i < numberOfAttributes; i++)
     {
         Form_pg_attribute attr = TupleDescAttr(tupleDesc, i);
-
         fill_val(attr,
                  bitP ? &bitP : NULL,
                  &bitmask,
                  &data,
                  infomask,
                  values ? values[i] : PointerGetDatum(NULL),
-                 isnull[i]);
+                 isnull ? isnull[i] : false);
     }
 
     assert((data - start) == data_size);
@@ -163,12 +162,15 @@ HeapTuple heap_form_tuple(TupleDesc tupleDesc, Datum *values, bool *isnull)
     bool hasnull = false;
     int numberOfAttributes = tupleDesc->natts;
 
-    for (int i = 0; i < numberOfAttributes; i++)
+    if (isnull)
     {
-        if (isnull[i])
+        for (int i = 0; i < numberOfAttributes; i++)
         {
-            hasnull = true;
-            break;
+            if (isnull[i])
+            {
+                hasnull = true;
+                break;
+            }
         }
     }
 

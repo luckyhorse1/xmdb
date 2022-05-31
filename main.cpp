@@ -7,7 +7,14 @@ int main()
 {
     initdb();
 
-    create_table(16384, "person");
+    char attnames[4][NAMEDATALEN] = {"name", "age", "sex", "money"};
+    Type types[4] = {STRING, SHORT, CHAR, INT};
+    create_table(16384, "person", attnames, types, 4);
 
-    printf("oid is %u\n", get_oid_by_relname("person"));
+    for (int i = 0; i < 4; i++)
+    {
+        table_insert("person", "xiaoma", 27, 'm', 20000);
+    }
+
+    table_scan("person");
 }

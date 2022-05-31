@@ -11,6 +11,7 @@ CATALOG(pg_class, 1259, RelationRelationId)
     NameData relname;
     Oid relfilenode;
     int32 relpages;
+    int16 relnatts;
 }
 FormData_pg_class;
 

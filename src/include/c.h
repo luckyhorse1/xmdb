@@ -10,10 +10,12 @@
 typedef unsigned char uint8;   /* == 8 bits */
 typedef unsigned short uint16; /* == 16 bits */
 typedef unsigned int uint32;   /* == 32 bits */
+typedef unsigned long uint64;	/* == 64 bits */
 
 typedef signed char int8;	/* == 8 bits */
 typedef signed short int16; /* == 16 bits */
 typedef signed int int32;	/* == 32 bits */
+typedef signed long int64;	/* == 64 bits */
 
 typedef uint8 bits8;   /* >= 8 bits */
 typedef uint16 bits16; /* >= 16 bits */
@@ -70,5 +72,15 @@ typedef struct nameData
 {
 	char data[NAMEDATALEN];
 } NameData;
+
+typedef enum Type
+{
+	INVALID_TYPE = 0,
+    CHAR,
+    SHORT,
+    INT,
+    LONG,
+    STRING
+} Type;
 
 #endif
